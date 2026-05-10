@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FormForge Embed Example</title>
+</head>
+<body>
+  <h1>FormForge Embed Demo</h1>
+
+  <!-- Method 1: init() function -->
+  <div id="my-form"></div>
+
+  <!-- Method 2: Web component -->
+  <formforge-form
+    slug="contact-us"
+    api-url="http://localhost:3001"
+    height="500"
+  ></formforge-form>
+
+  <script type="module">
+    import { init } from './dist/embed.esm.js'
+
+    init({
+      container: '#my-form',
+      formSlug: 'contact-us',
+      apiUrl: 'http://localhost:3001',
+      height: 600,
+      onSubmit(data) {
+        console.log('Form submitted:', data)
+        alert('Submitted! Check console.')
+      },
+      onError(err) {
+        console.error('Form error:', err)
+      },
+    })
+  </script>
+</body>
+</html>

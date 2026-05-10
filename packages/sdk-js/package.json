@@ -1,0 +1,24 @@
+{
+  "name": "@formforge/embed",
+  "version": "0.1.0",
+  "description": "Vanilla JS embed SDK for FormForge — iframe and web component",
+  "type": "module",
+  "main": "./dist/embed.js",
+  "module": "./dist/embed.js",
+  "exports": {
+    ".": {
+      "import": "./dist/embed.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  }
+}
