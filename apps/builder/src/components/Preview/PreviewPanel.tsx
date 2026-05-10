@@ -14,7 +14,7 @@ export function PreviewPanel() {
         </div>
         <FormRenderer
           schema={schema}
-          onSubmit={(data) => {
+          onSubmit={(data: Record<string, unknown>) => {
             console.log('[preview] Form submitted:', data)
             alert('Preview submission: check console for data')
           }}
