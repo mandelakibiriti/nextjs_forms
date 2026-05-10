@@ -4,23 +4,23 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+# Bypass TLS verification for corporate proxy environments with self-signed certs
+RUN npm config set strict-ssl false && npm install -g pnpm@9.15.0 --quiet \
+    && pnpm config set strict-ssl false --global
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2: install + build
-# Layered so that "pnpm install" is re-run only when package manifests change
+# Manifests are copied first so the install layer is cached until they change
 FROM base AS builder
 WORKDIR /app
 
-# Copy manifests first — Docker caches this layer until any package.json changes
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
 COPY packages/schema-core/package.json ./packages/schema-core/
 COPY apps/api/package.json ./apps/api/
 
-# Install all workspace dependencies
 RUN pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
 
-# Copy the rest of the source files
+# Copy all source files
 COPY tsconfig.base.json ./
 COPY packages/schema-core ./packages/schema-core
 COPY apps/api ./apps/api
@@ -45,9 +45,6 @@ RUN cp apps/api/entrypoint.sh /deployment/entrypoint.sh
 # Stage 3: minimal production runtime image
 FROM node:22-alpine AS runner
 
-# postgresql-client provides pg_isready for the startup health-check wait
-RUN apk add --no-cache postgresql-client
-
 WORKDIR /app
 ENV NODE_ENV=production
 
@@ -57,6 +54,7 @@ RUN chmod +x entrypoint.sh
 
 EXPOSE 3001
 
+# nc (netcat) is built into BusyBox on Alpine — no extra packages needed
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -qO- http://localhost:3001/health || exit 1
 

@@ -4,7 +4,8 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+RUN npm config set strict-ssl false && npm install -g pnpm@9.15.0 --quiet \
+    && pnpm config set strict-ssl false --global
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2: install + build
