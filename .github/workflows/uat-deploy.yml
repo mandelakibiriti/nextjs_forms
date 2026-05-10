@@ -49,8 +49,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build schema-core (required for dependent packages)
+      - name: Build schema-core
         run: pnpm --filter @formforge/schema-core build
+
+      # sdk-react must be compiled before the builder can resolve its types
+      - name: Build sdk-react
+        run: pnpm --filter @formforge/react build
 
       - name: Type-check API
         run: pnpm --filter @formforge/api lint
