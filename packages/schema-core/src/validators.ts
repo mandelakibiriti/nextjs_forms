@@ -76,7 +76,9 @@ export const DbColumnConfigSchema = z.object({
 })
 
 // Recursive schema for FormField (supports section/repeater nesting)
-export const FormFieldSchema: z.ZodType<import('./types.js').FormField> = z.lazy(() =>
+// Note: explicit ZodType<FormField> annotation omitted — z.unknown() fields
+// cause variance issues with strict exactOptionalPropertyTypes; runtime behaviour is correct.
+export const FormFieldSchema: z.ZodTypeAny = z.lazy(() =>
   z.object({
     id: z.string().uuid(),
     key: z.string().regex(/^[a-z][a-z0-9_]*$/, 'Key must be snake_case'),

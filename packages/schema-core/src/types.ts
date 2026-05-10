@@ -43,7 +43,7 @@ export type ConditionalAction = 'show' | 'hide' | 'require' | 'disable' | 'set_v
 export interface ConditionalRule {
   when: string
   operator: ConditionalOperator
-  value: unknown
+  value?: unknown
   action: ConditionalAction
   target?: string
   targetValue?: unknown

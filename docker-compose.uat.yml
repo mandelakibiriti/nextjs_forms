@@ -1,0 +1,56 @@
+# UAT overrides — use with:
+#   docker compose -f docker-compose.yml -f docker-compose.uat.yml up -d
+#
+# Required environment variables (set in .env.uat or CI secrets):
+#   REGISTRY          e.g. ghcr.io/mandelakibiriti/nextjs_forms
+#   IMAGE_TAG         e.g. latest or sha-abc1234
+#   DATABASE_URL      full PostgreSQL connection string
+#   JWT_SECRET        at least 32 chars, random
+#   REDIS_URL         Redis connection string
+#   API_BASE_URL      public URL of the API
+#   VITE_API_URL      same as API_BASE_URL (baked in at build time)
+
+name: formforge-uat
+
+services:
+  postgres:
+    restart: always
+    # In UAT, expose postgres only on localhost (no public port)
+    ports: []
+
+  redis:
+    restart: always
+    ports: []
+
+  api:
+    image: ${REGISTRY}/formforge-api:${IMAGE_TAG:-latest}
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      PORT: 3001
+      API_BASE_URL: ${API_BASE_URL}
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  builder:
+    image: ${REGISTRY}/formforge-builder:${IMAGE_TAG:-latest}
+    restart: always
+    ports:
+      - "80:80"
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"

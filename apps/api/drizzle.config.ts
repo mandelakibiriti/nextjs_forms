@@ -1,11 +1,10 @@
 import { defineConfig } from 'drizzle-kit'
-import { env } from './src/env.js'
 
 export default defineConfig({
   dialect: 'postgresql',
   schema: './src/db/schema.ts',
   out: './drizzle/migrations',
   dbCredentials: {
-    url: env.DATABASE_URL,
+    url: process.env.DATABASE_URL ?? 'postgresql://postgres:password@localhost:5432/formforge',
   },
 })
