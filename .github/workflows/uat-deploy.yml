@@ -182,14 +182,32 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  # ─── 4. Deploy Full Stack → UAT server (only if SSH secrets configured) ──
+  # ─── 4. Gate job: reads UAT_SSH_HOST secret → emits boolean output ─────────
+  # Secrets cannot be used in job-level `if:` expressions, so we check inside
+  # a `run` step (where they are allowed) and expose the result as an output.
+  check-secrets:
+    name: Check UAT Server Secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has_uat_server: ${{ steps.check.outputs.has_uat_server }}
+    steps:
+      - name: Detect UAT_SSH_HOST
+        id: check
+        env:
+          UAT_SSH_HOST: ${{ secrets.UAT_SSH_HOST }}
+        run: |
+          if [ -n "$UAT_SSH_HOST" ]; then
+            echo "has_uat_server=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_uat_server=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ─── 5. Deploy Full Stack → UAT server (only if SSH secrets configured) ──
   deploy-uat:
     name: Deploy Full Stack → UAT Server
     runs-on: ubuntu-latest
-    needs: build-images
-    # Skip this job gracefully when no UAT server is configured.
-    # Set the UAT_SSH_HOST secret in repo/environment settings to enable.
-    if: ${{ secrets.UAT_SSH_HOST != '' }}
+    needs: [build-images, check-secrets]
+    if: needs.check-secrets.outputs.has_uat_server == 'true'
     environment:
       name: uat
       url: ${{ vars.UAT_APP_URL }}
@@ -266,7 +284,7 @@ jobs:
             echo "  API health check failed"
             exit 1
 
-  # ─── 5. Deployment Summary ────────────────────────────────────────────────
+  # ─── 6. Deployment Summary ────────────────────────────────────────────────
   summary:
     name: Deployment Summary
     runs-on: ubuntu-latest
